@@ -143,20 +143,6 @@ git reflog
 
 Use this to recover lost commits or undo bad resets.
 
-## ⭐ Helpful Aliases
-
-Configured once:
-```bash
-git config --global alias.st status
-git config --global alias.lg "log --oneline --graph --decorate"
-```
-
-Usage:
-```bash
-git st
-git lg
-```
-
 ## ✅ Quick Pre-Push Checklist
 ```bash
 git status

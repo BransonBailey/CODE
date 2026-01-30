@@ -1,0 +1,114 @@
+from playwright.sync_api import Playwright, sync_playwright
+
+def run(playwright: Playwright) -> None:
+    browser = playwright.chromium.launch(headless=False)
+    context = browser.new_context()
+    page = context.new_page()
+
+    # Helper function to fill the form
+    def fill_form():
+        page.get_by_role("textbox", name="First Name").click()
+        page.get_by_role("textbox", name="First Name").fill("Branson")
+        page.get_by_role("textbox", name="First Name").press("Tab")
+        page.get_by_role("textbox", name="Last Name").fill("Bailey")
+        page.get_by_role("textbox", name="Last Name").press("Tab")
+        page.get_by_role("textbox", name="Email *").fill("b.bailey1@andersonuniversity.edu")
+        page.get_by_role("textbox", name="Email *").press("Tab")
+        page.get_by_role("textbox", name="How many people are in your").fill("1")
+        page.get_by_role("textbox", name="How many people are in your").press("Tab")
+        page.get_by_role("textbox", name="What is your purpose for").fill("Work")
+        page.get_by_role("button", name="Submit my Booking").click()
+        page.get_by_role("link", name="Make Another Booking").click()
+
+    # ---------------------------
+    # FRIDAY, MARCH 13 (single slot)
+    page.goto("https://andersonuniversity.libcal.com/reserve/studyrooms")
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="13", exact=True).click()
+    page.get_by_label("8:00 AM Friday, March 13, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # MONDAY, MARCH 16 (single slot)
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="16", exact=True).click()
+    page.get_by_label("8:00 AM Monday, March 16, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # TUESDAY, MARCH 17 (two slots)
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="17", exact=True).click()
+    # First slot 8:00-11:00
+    page.get_by_label("8:00 AM Tuesday, March 17, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+    # Second slot 11:00-12:00
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="17", exact=True).click()
+    page.get_by_label(":00 AM Tuesday, March 17, 2026 - Harvey 1B - Available").click()
+    page.get_by_label("Harvey 1B: 11:00 AM Tuesday").select_option("2026-03-17 12:00:00")
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # WEDNESDAY, MARCH 18 (single slot)
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="18", exact=True).click()
+    page.get_by_label("8:00 AM Wednesday, March 18, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # THURSDAY, MARCH 19 (two slots)
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="19", exact=True).click()
+    # First slot 8:00-11:00
+    page.get_by_label("8:00 AM Thursday, March 19, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+    # Second slot 11:00-12:00
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="19", exact=True).click()
+    page.get_by_label(":00 AM Thursday, March 19, 2026 - Harvey 1B - Available").click()
+    page.get_by_label("Harvey 1B: 11:00 AM Thursday").select_option("2026-03-19 12:00:00")
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # FRIDAY, MARCH 20 (single slot)
+    page.get_by_role("button", name="Go To Date").click()
+    page.get_by_role("columnheader", name="January").click()
+    page.get_by_text("Mar").click()
+    page.get_by_role("cell", name="20", exact=True).click()
+    page.get_by_label("8:00 AM Friday, March 20, 2026 - Harvey 1B - Available").click()
+    page.get_by_role("button", name="Submit Times").click()
+    page.get_by_role("button", name="Continue").click()
+    fill_form()
+
+    # ---------------------------
+    context.close()
+    browser.close()
+
+
+with sync_playwright() as playwright:
+    run(playwright)
+

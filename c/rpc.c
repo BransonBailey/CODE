@@ -16,7 +16,7 @@ int main() {
 
 //   printf("%d", comp_choice);         THIS WAS FOR TESTING THE RANDOM NUMBER
    while (1) {
-       printf("\n\nEnter a choice: [0-3]");
+       printf("\n\nEnter a choice: [0-2]");
        scanf(" %d", &input);
        if (input >= 0 && input <= 2) {
             break;

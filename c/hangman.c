@@ -63,15 +63,21 @@ int main() {
       break;
     }
 
+    int current_line = 0;
     while (fgets(line, sizeof(line), file)) {
       line[strcspn(line, "\n")] = 0;
 
       // printf("Length of line: %lu\n", strlen(line));
 
-      for (int i = 0; i < strlen(line); i++) {
-        printf("X");
+      if (current_line == word_line) {
+
+        for (int i = 0; i < strlen(line); i++) {
+          printf("X");
+        }
+        printf("\n");
+        break;
       }
-      printf("\n");
+      current_line++;
     }
 
     fclose(file);

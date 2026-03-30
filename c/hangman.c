@@ -72,7 +72,7 @@ int main() {
       if (current_line == word_line) {
 
         for (int i = 0; i < strlen(line); i++) {
-          printf("X");
+          printf(" _");
         }
         printf("\n");
         break;

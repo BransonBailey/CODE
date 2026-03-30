@@ -77,8 +77,10 @@ int main() {
     fclose(file);
     printf("\n");
 
+    int play_input;
     printf("Play again? (1 for yes, 0 for no): ");
-    scanf("%d", &play);
+    scanf("%d", &play_input);
+    play = play_input != 0;
   }
 
   return 0;

@@ -72,7 +72,7 @@ int main() {
     if (play == 0) {
       printf("\n\nGoodbye!\n\n\n");
     }
-
-    return 0;
   }
+
+  return 0;
 }

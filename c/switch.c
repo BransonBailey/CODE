@@ -20,32 +20,35 @@
 
 int main() {
 
-  int dayOfWeek = 7;
+  int dayOfWeek = 0;
+
+  printf("Enter the day of the week (1-7): ");
+  scanf("%d", &dayOfWeek);
 
   switch (dayOfWeek) {
   case 1:
-    printf("It is Monday");
+    printf("\nIt is Monday");
     break;
   case 2:
-    printf("It is Tuesday");
+    printf("\nIt is Tuesday");
     break;
   case 3:
-    printf("It is Wednesday");
+    printf("\nIt is Wednesday");
     break;
   case 4:
-    printf("It is Thursday");
+    printf("\nIn is Thursday");
     break;
   case 5:
-    printf("It is Friday");
+    printf("\nInt is Friday");
     break;
   case 6:
-    printf("It is Saturday");
+    printf("\nIt is Saturday");
     break;
   case 7:
-    printf("It is Sunday");
+    printf("\nIt is Sunday");
     break;
   default:
-    printf("Please enter a number (1-7)");
+    printf("\nPlease enter a number (1-7)");
   }
 
   return 0;

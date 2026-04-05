@@ -44,6 +44,8 @@ int main() {
   case 7:
     printf("It is Sunday");
     break;
+  default:
+    printf("Please enter a number (1-7)");
   }
 
   return 0;

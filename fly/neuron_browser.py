@@ -18,7 +18,7 @@ DATASET = "male-cns:v1.0"
 HOST = "127.0.0.1"
 PORT = 8050
 
-MAX_SELECTED_NEURONS = 20
+MAX_SELECTED_NEURONS = 1000000
 
 
 # ----------------------------------------------------------------------

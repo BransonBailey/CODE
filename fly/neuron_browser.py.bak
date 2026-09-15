@@ -1,6 +1,6 @@
+#!/usr/bin/env python3
+
 import os
-import pickle
-from pathlib import Path
 from functools import lru_cache
 
 import navis
@@ -301,155 +301,38 @@ all_neuron_options = make_dropdown_options(
 
 
 # ----------------------------------------------------------------------
-# Persistent skeleton cache
+# Skeleton cache
 # ----------------------------------------------------------------------
-
-# Skeletons are stored on disk so they survive restarting the program.
-# The in-memory lru_cache below is still useful for very fast repeated
-# selections during the current session.
-SKELETON_CACHE_DIR = Path(
-    os.environ.get(
-        "NEURON_BROWSER_CACHE",
-        "~/.cache/neuron_browser/skeletons",
-    )
-).expanduser()
-SKELETON_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def skeleton_cache_path(body_id):
-    return SKELETON_CACHE_DIR / f"{int(body_id)}.pkl"
-
-
-def load_cached_skeleton(body_id):
-    path = skeleton_cache_path(body_id)
-
-    if not path.is_file():
-        return None
-
-    try:
-        with path.open("rb") as file:
-            return pickle.load(file)
-    except (OSError, EOFError, pickle.PickleError, AttributeError,
-            ImportError, ValueError):
-        # A corrupt/incompatible cache entry should simply be downloaded
-        # again rather than preventing the application from starting.
-        try:
-            path.unlink()
-        except OSError:
-            pass
-        return None
-
-
-def save_cached_skeleton(skeleton):
-    body_id = int(skeleton.id)
-    path = skeleton_cache_path(body_id)
-    temporary_path = path.with_suffix(".pkl.tmp")
-
-    with temporary_path.open("wb") as file:
-        pickle.dump(skeleton, file, protocol=pickle.HIGHEST_PROTOCOL)
-
-    temporary_path.replace(path)
-
-
-def preload_all_skeletons(body_ids, batch_size=250):
-    """
-    Make sure every neuron skeleton has a local disk-cache entry.
-
-    Existing skeletons are never downloaded again. Missing skeletons are
-    fetched from neuPrint in batches and immediately written to disk.
-    """
-
-    body_ids = [int(body_id) for body_id in body_ids]
-    missing = [
-        body_id
-        for body_id in body_ids
-        if not skeleton_cache_path(body_id).is_file()
-    ]
-
-    cached_count = len(body_ids) - len(missing)
-
-    print("\nSkeleton cache:")
-    print(f"  Location: {SKELETON_CACHE_DIR}")
-    print(f"  Already cached: {cached_count:,} / {len(body_ids):,}")
-
-    if not missing:
-        print("  All skeletons are already downloaded.\n")
-        return
-
-    print(f"  Need to download: {len(missing):,}")
-    print("  Downloading skeletons...\n")
-
-    downloaded = 0
-
-    for start in range(0, len(missing), batch_size):
-        batch = missing[start:start + batch_size]
-
-        skeletons = neu.fetch_skeletons(
-            NeuronCriteria(bodyId=batch)
-        )
-
-        batch_skeletons = list(skeletons)
-
-        for skeleton in batch_skeletons:
-            save_cached_skeleton(skeleton)
-            downloaded += 1
-
-        total_cached = cached_count + downloaded
-        print(
-            f"  Cached: {total_cached:,} / {len(body_ids):,}"
-            f" ({total_cached / len(body_ids) * 100:.1f}%)"
-        )
-
-    print("\nSkeleton cache is up to date.\n")
-
 
 @lru_cache(maxsize=128)
 def fetch_selected_skeletons(body_ids):
-    """Load selected skeletons from the persistent local cache."""
+    """
+    Fetch skeletons for selected body IDs.
 
-    body_ids = tuple(int(body_id) for body_id in body_ids)
+    The tuple is cached so repeatedly selecting and deselecting
+    neurons does not unnecessarily download the same skeletons.
+    """
+
+    body_ids = tuple(
+        int(body_id)
+        for body_id in body_ids
+    )
 
     if not body_ids:
         return []
 
-    skeletons = []
-    missing = []
+    print(
+        f"Fetching skeletons for "
+        f"{len(body_ids)} neurons..."
+    )
 
-    for body_id in body_ids:
-        skeleton = load_cached_skeleton(body_id)
-        if skeleton is None:
-            missing.append(body_id)
-        else:
-            skeletons.append(skeleton)
-
-    # Normally this is empty because preload_all_skeletons() ran at startup.
-    # If a cache entry was deleted/corrupted while the app was running,
-    # download just that entry and add it back to the persistent cache.
-    if missing:
-        print(
-            f"Fetching {len(missing)} missing skeleton(s) from neuPrint..."
+    skeletons = neu.fetch_skeletons(
+        NeuronCriteria(
+            bodyId=list(body_ids),
         )
+    )
 
-        fetched = list(
-            neu.fetch_skeletons(
-                NeuronCriteria(bodyId=list(missing))
-            )
-        )
-
-        for skeleton in fetched:
-            save_cached_skeleton(skeleton)
-            skeletons.append(skeleton)
-
-    skeletons_by_id = {int(skeleton.id): skeleton for skeleton in skeletons}
-    return [skeletons_by_id[body_id] for body_id in body_ids
-            if body_id in skeletons_by_id]
-
-
-# Pre-download the complete skeleton set once.
-# Future launches use the local disk cache instead of neuPrint.
-preload_all_skeletons(
-    neurons["bodyId"].astype(int).tolist()
-)
+    return list(skeletons)
 
 
 # ----------------------------------------------------------------------
@@ -813,5 +696,4 @@ if __name__ == "__main__":
         port=PORT,
         debug=True,
     )
-
 

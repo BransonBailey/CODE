@@ -29,6 +29,7 @@ try:
     from PyQt5.QtGui import QFont
     from PyQt5.QtWidgets import (
         QApplication,
+        QCheckBox,
         QComboBox,
         QHBoxLayout,
         QLabel,
@@ -476,7 +477,7 @@ class NeuronCanvas(scene.SceneCanvas):
         camera.roll = 0
         camera.update()
 
-    def set_neurons(self, skeletons, labels_by_id):
+    def set_neurons(self, skeletons, labels_by_id, show_labels=False):
         import numpy as np
 
         self.clear_scene()
@@ -570,24 +571,25 @@ class NeuronCanvas(scene.SceneCanvas):
             parent=self.view.scene,
         )
 
-        # Labels are deliberately one per neuron. Use the default Text backend
-        # for maximum Qt5/Linux compatibility.
-        try:
-            self.label_visual = visuals.Text(
-                text=label_text,
-                pos=label_positions,
-                color="black",
-                font_size=10,
-                anchor_x="left",
-                anchor_y="center",
-                scaling=False,
-                parent=self.view.scene,
-            )
-        except Exception as exc:
-            # Geometry must remain usable even if a platform's text backend
-            # rejects the multi-label visual.
-            print(f"Warning: neuron labels disabled: {exc}")
-            self.label_visual = None
+        # Text labels are optional because they add rendering overhead and can
+        # make dense neuron selections harder to read.
+        if show_labels:
+            try:
+                self.label_visual = visuals.Text(
+                    text=label_text,
+                    pos=label_positions,
+                    color="black",
+                    font_size=10,
+                    anchor_x="left",
+                    anchor_y="center",
+                    scaling=False,
+                    parent=self.view.scene,
+                )
+            except Exception as exc:
+                # Geometry must remain usable even if a platform's text backend
+                # rejects the multi-label visual.
+                print(f"Warning: neuron labels disabled: {exc}")
+                self.label_visual = None
 
         self._frame_camera(minimum, maximum)
         self.update()
@@ -596,7 +598,8 @@ class NeuronCanvas(scene.SceneCanvas):
 
         print(
             f"Rendered {len(label_text):,} neuron(s), "
-            f"{total_segments:,} full-resolution skeleton segments."
+            f"{total_segments:,} full-resolution skeleton segments"
+            + (" with labels." if show_labels else ".")
         )
         return len(label_text), total_segments
 
@@ -653,6 +656,15 @@ class NeuronViewerWindow(QMainWindow):
         self.search.setPlaceholderText("bodyId, type, instance, family...")
         self.search.textChanged.connect(self.apply_filters)
         controls_layout.addWidget(self.search)
+
+        self.show_labels_checkbox = QCheckBox("Show neuron labels")
+        self.show_labels_checkbox.setChecked(False)
+        self.show_labels_checkbox.setToolTip(
+            "Render one text label per selected neuron. Disabling labels can "
+            "improve rendering speed and reduce visual clutter."
+        )
+        self.show_labels_checkbox.toggled.connect(self.render_selection)
+        controls_layout.addWidget(self.show_labels_checkbox)
 
         button_row = QHBoxLayout()
         self.select_all_button = QPushButton("Select all filtered")
@@ -757,7 +769,11 @@ class NeuronViewerWindow(QMainWindow):
 
         body_ids = tuple(sorted(self.selected_ids))
         skeletons = fetch_selected_skeletons(body_ids)
-        self.canvas.set_neurons(skeletons, self.labels_by_id)
+        self.canvas.set_neurons(
+            skeletons,
+            self.labels_by_id,
+            show_labels=self.show_labels_checkbox.isChecked(),
+        )
 
 
 # ----------------------------------------------------------------------
